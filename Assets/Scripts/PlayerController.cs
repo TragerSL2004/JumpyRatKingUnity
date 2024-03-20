@@ -5,6 +5,9 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] private bool _isPlayerOne = true;
+
+    [Space]
     [SerializeField, Tooltip("Player max speed")] private float _maxSpeed;
     [SerializeField, Tooltip("Player Acceleration")] private float _acceleration;
     [SerializeField, Tooltip("Player jump height")] private float _jumpHeight;
@@ -35,17 +38,27 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Get movement input
-        _moveDirection = new Vector3(Input.GetAxisRaw("Horizontal"), 0, 0);
-        _jumpInput = Input.GetAxisRaw("Jump") != 0;
+        if (_isPlayerOne)
+        {
+            //Get player one movement input
+            _moveDirection = new Vector3(Input.GetAxisRaw("Player1Horizontal"), 0, 0);
+            _jumpInput = Input.GetAxisRaw("Player1Jump") != 0;
+        }
+        else
+        {
+            //Get player two movement input
+            _moveDirection = new Vector3(Input.GetAxisRaw("Player2Horizontal"), 0, 0);
+            _jumpInput = Input.GetAxisRaw("Player2Jump") != 0;
+        }
     }
     private void FixedUpdate()
     {
         //Ground check
         _isGrounded = Physics.OverlapSphere(transform.position + _groundCheck, _groundCheckRadius).Length > 1;
-        
+
         //Add movement force
-        _rigidBody.AddForce(_moveDirection * _acceleration * Time.deltaTime, ForceMode.VelocityChange);
+        Vector3 force = _moveDirection * _acceleration * Time.deltaTime;
+        _rigidBody.AddForce(force, ForceMode.VelocityChange);
 
         //Clamp velocity to _maxSpeed
         Vector3 velocity = _rigidBody.velocity;
@@ -57,8 +70,8 @@ public class PlayerController : MonoBehaviour
         if(_jumpInput && _isGrounded)
         {
             //Calculate force needed to reach _jumpHeight
-            float force = Mathf.Sqrt(_jumpHeight * -2f * Physics.gravity.y);
-            _rigidBody.AddForce(Vector3.up * force, ForceMode.Impulse);
+            float jumpForce = Mathf.Sqrt(_jumpHeight * -2f * Physics.gravity.y);
+            _rigidBody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         }
     }
 #if UNITY_EDITOR
